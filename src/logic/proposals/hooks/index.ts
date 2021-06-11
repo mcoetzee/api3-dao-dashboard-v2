@@ -1,14 +1,14 @@
 import { BigNumber } from 'ethers';
 import { useCallback, useEffect } from 'react';
-import { Proposals, ProposalType, updateImmutably, useChainData, VoterState } from '../../chain-data';
-import { Api3Voting, Convenience } from '../../generated-contracts';
-import { useApi3Voting, useConvenience, usePossibleChainDataUpdate } from '../../contracts/hooks';
-import { Proposal } from '../../chain-data';
-import { decodeMetadata } from './encoding';
+import { Proposals, ProposalType, updateImmutably, useChainData, VoterState } from '../../../chain-data';
+import { Api3Voting, Convenience } from '../../../generated-contracts';
+import { useApi3Voting, useConvenience, usePossibleChainDataUpdate } from '../../../contracts/hooks';
+import { Proposal } from '../../../chain-data';
+import { decodeMetadata } from '../encoding';
 import zip from 'lodash/zip';
-import { isGoSuccess, blockTimestampToDate, go, GO_RESULT_INDEX, GO_ERROR_INDEX } from '../../utils';
+import { isGoSuccess, blockTimestampToDate, go, GO_RESULT_INDEX, GO_ERROR_INDEX } from '../../../utils';
 import { chunk, difference, keyBy } from 'lodash';
-import { openProposalIdsSelector, proposalDetailsSelector } from './selectors';
+import { openProposalIdsSelector, proposalDetailsSelector } from '../selectors';
 
 interface StartVoteProposal {
   voteId: BigNumber;
