@@ -16,8 +16,8 @@ import { ethersProvider } from './common';
 // NOTE: Not everything should be a custom command and it's perfectly fine to encapsulate login in JS functions. See:
 // https://docs.cypress.io/api/cypress-api/custom-commands#1-Don-t-make-everything-a-custom-command
 
-Cypress.Commands.add('increaseTime', (timeInSeconds: number) => {
-  cy.log('increaseTime');
+Cypress.Commands.add('increaseTimeAndRelogin', (timeInSeconds: number) => {
+  cy.log('increaseTimeAndRelogin');
 
   cy.wrap(ethersProvider.send('evm_increaseTime', [timeInSeconds])).then(() =>
     cy.clock(Date.now() + 1000 * timeInSeconds, ['Date'])
@@ -54,7 +54,7 @@ Cypress.Commands.add('login', () => {
 
   // If we are already connected (dangling state from previous test), let's disconnect
   //
-  //NOTE: This is ugly, because such pattern is discouraged. See:
+  // NOTE: This is ugly, because such pattern is discouraged. See:
   // https://docs.cypress.io/guides/core-concepts/conditional-testing#The-problem
   cy.get('body').then((res) => {
     // We can't use dataCy directly, because if the element is not present cypress will fail the test
@@ -72,4 +72,10 @@ Cypress.Commands.add('login', () => {
 
 Cypress.Commands.add('dataCy', (value) => {
   cy.get(`[data-cy=${value}]`);
+});
+
+Cypress.Commands.add('switchAccount', (index: number) => {
+  cy.dataCy('connected-status').filter(':visible').click();
+  cy.findAllByText('Change account').filter(':visible').click();
+  cy.dataCy('available-accounts').children().eq(index).click();
 });

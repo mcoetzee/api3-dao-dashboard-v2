@@ -3,16 +3,16 @@ import { abbrStr } from '../../../chain-data/helpers';
 import DelegateVotesForm from '../forms/delegate/delegate-form';
 import globalStyles from '../../../styles/global-styles.module.scss';
 import { useChainData } from '../../../chain-data';
-import styles from './delegation.module.scss';
 import Button from '../../../components/button/button';
 import { Modal } from '../../../components/modal/modal';
-import { delegationCooldownOverSelector } from '../../../logic/proposals/selectors';
+import { canDelegateSelector, canUndelegateSelector } from '../../../logic/proposals/selectors';
 import ChooseDelegateAction from '../forms/choose-delegate-action/choose-delegate-action';
 import { useApi3Pool } from '../../../contracts';
-import { go, isUserRejection } from '../../../utils';
-import * as notifications from '../../../components/notifications/notifications';
-import { messages } from '../../../utils/messages';
+import { handleTransactionError } from '../../../utils';
+import { images } from '../../../utils';
 import { useLoadDashboardData } from '../../../logic/dashboard';
+import TooltipChecklist from '../../../components/tooltip/tooltip-checklist';
+import styles from './delegation.module.scss';
 
 const Delegation = () => {
   // TODO: Retrieve only "userStaked" from the chain instead of loading all staking data (and remove useLoadDashboardData call)
@@ -24,16 +24,29 @@ const Delegation = () => {
   const [openDelegationModal, setOpenDelegationModal] = useState(false);
   const [openChooseDelegateActionModal, setOpenChooseDelegateActionModal] = useState(false);
 
-  // TODO: Merge into bigger selector
-  const delegationCooldownOver = delegationCooldownOverSelector(delegation);
-  const canDelegate = delegationCooldownOver && (dashboardState?.userStaked.gt(0) ?? false);
-  const canUndelegate = delegationCooldownOver;
+  const delegate = canDelegateSelector(delegation, dashboardState);
+  const undelegate = canUndelegateSelector(delegation);
+
+  const delegateChecklistItems = [
+    {
+      checked: delegate?.hasStakedTokens ?? false,
+      label: 'You have staked API3 tokens.',
+    },
+    {
+      checked: delegate?.delegationCooldownOver ?? false,
+      label: "You haven't updated delegation in the last 7 days.",
+    },
+  ];
+
+  // The button should always be in sync with the checklist
+  const canDelegate = delegateChecklistItems.every((item) => item.checked);
+  const canUndelegate = undelegate?.delegationCooldownOver ?? false;
 
   return (
     <>
       {delegation?.delegate ? (
         <div>
-          <p className={`${globalStyles.secondaryColor} ${globalStyles.bold}`}>
+          <p className={`${globalStyles.secondaryColor} ${globalStyles.bold}`} data-cy="delegated-to">
             Delegated to: {abbrStr(delegation.delegate)}
           </p>
           <Button
@@ -44,6 +57,9 @@ const Delegation = () => {
           >
             Update delegation
           </Button>
+          <TooltipChecklist items={delegateChecklistItems}>
+            <img src={images.help} alt="delegation help" className={globalStyles.helpIcon} />
+          </TooltipChecklist>
           <Modal open={openChooseDelegateActionModal} onClose={() => setOpenChooseDelegateActionModal(false)}>
             <ChooseDelegateAction
               canUpdateDelegation={canDelegate}
@@ -51,16 +67,7 @@ const Delegation = () => {
               onUndelegate={async () => {
                 if (!api3Pool) return;
 
-                const [error, tx] = await go(api3Pool.undelegateVotingPower());
-                if (error) {
-                  if (isUserRejection(error)) {
-                    notifications.info({ message: messages.TX_GENERIC_REJECTED });
-                    return;
-                  }
-                  notifications.error({ message: messages.TX_GENERIC_ERROR, errorOrMessage: error });
-                  return;
-                }
-
+                const tx = await handleTransactionError(api3Pool.undelegateVotingPower());
                 if (tx) {
                   setChainData('Save undelegate transaction', {
                     transactions: [...transactions, { type: 'undelegate', tx }],
@@ -87,6 +94,9 @@ const Delegation = () => {
           >
             Delegate
           </Button>
+          <TooltipChecklist items={delegateChecklistItems}>
+            <img src={images.help} alt="delegation help" className={globalStyles.helpIcon} />
+          </TooltipChecklist>
         </div>
       )}
       <Modal open={openDelegationModal} onClose={() => setOpenDelegationModal(false)}>

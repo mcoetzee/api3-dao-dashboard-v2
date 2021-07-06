@@ -1,8 +1,8 @@
 import produce from 'immer';
-import { ethers } from 'ethers';
+import { ethers, providers } from 'ethers';
 import { notifications } from '../components/notifications/notifications';
 import { getDaoAddresses, getEtherscanTransactionUrl } from '../contracts';
-import { initialChainData } from './state';
+import { ChainData, initialChainData } from './state';
 import { go, GO_RESULT_INDEX, isGoSuccess } from '../utils';
 
 export const updateImmutably = <T>(state: T, updateCb: (immutableState: T) => void) => {
@@ -20,26 +20,35 @@ export const getNetworkData = async (provider: ethers.providers.Web3Provider | n
   // If the user has disconnected
   if (!provider) return initialChainData;
 
-  const goResponse = await go(provider.getSigner().getAddress());
+  const goResponse = await go(async () => {
+    return {
+      allAccounts: await provider.listAccounts(),
+      currentAccount: await provider.getSigner().getAddress(),
+      network: await provider.getNetwork(),
+    };
+  });
   // Happens when the user locks his metamask account
   if (!isGoSuccess(goResponse)) return initialChainData;
 
-  const network = await provider.getNetwork();
-
-  let networkName = network.name;
+  let networkName = goResponse[GO_RESULT_INDEX].network.name;
   // NOTE: The localhost doesn't have a name, so set any unknown networks
   // to localhost. The network name is needed to display the "Unsupported Network"
   // message to the user if required and in "connected to" status panel.
   if (networkName === 'unknown') networkName = 'localhost';
+  // Convert "homestead" to mainnet for convenience
+  if (networkName === 'homestead') networkName = 'mainnet';
 
-  const newData = {
-    userAccount: goResponse[GO_RESULT_INDEX],
+  const networdData: Partial<ChainData> = {
+    provider,
+    userAccount: goResponse[GO_RESULT_INDEX].currentAccount,
+    signer: provider.getSigner(),
+    availableAccounts: goResponse[GO_RESULT_INDEX].allAccounts,
     networkName: networkName,
-    chainId: network.chainId,
+    chainId: goResponse[GO_RESULT_INDEX].network.chainId,
     contracts: getDaoAddresses(networkName),
   };
 
-  return { ...newData, provider };
+  return networdData;
 };
 
 export const abbrStr = (str: string) => {
@@ -79,21 +88,18 @@ export const displayPendingTransaction = async (
       // The user "cancelled" the transaction. i.e. it was resent with the same
       // nonce, but higher gas price, value as 0 and data as 0x
       if (ethersError.cancelled) {
-        notifications.success({ message: 'Transaction cancelled successfully' });
-        return;
+        return notifications.success({ message: 'Transaction cancelled successfully' });
       }
 
       // The user "sped up" their transaction by resending it with a higher gas price
       if (ethersError.replacement && ethersError.replacement.hash) {
         const replacementTxUrl = getEtherscanTransactionUrl(ethersError.replacement);
-        notifications.success({ url: replacementTxUrl, message: messages.success });
-        return;
+        return notifications.success({ url: replacementTxUrl, message: messages.success });
       }
 
       // A receipt with status 0 means the transaction failed
       if (ethersError.receipt?.status === 0) {
-        notifications.error({ url, message: messages.error, errorOrMessage: messages.error });
-        return;
+        return notifications.error({ url, message: messages.error, errorOrMessage: messages.error });
       }
     }
   }
@@ -101,13 +107,24 @@ export const displayPendingTransaction = async (
   if (receipt) {
     // A receipt with status 0 means the transaction failed and 1 indicates success
     if (receipt.status === 0) {
-      notifications.error({ url, message: messages.error, errorOrMessage: messages.error });
-      return;
+      return notifications.error({ url, message: messages.error, errorOrMessage: messages.error });
     }
 
     if (receipt.status === 1) {
-      notifications.success({ url, message: messages.success });
-      return;
+      return notifications.success({ url, message: messages.success });
     }
   }
+};
+
+// Injects a mocked ethers provider set to make RPC calls to node running on localhost
+export const mockLocalhostWeb3Provider = (window: Window) => {
+  const ethersProvider = new providers.JsonRpcProvider('http://localhost:8545');
+
+  // The request `request` function is defined when we use Metamask, so we mock it
+  (ethersProvider as any).request = ({ method, params }: any) => {
+    if (method === 'eth_requestAccounts') method = 'eth_accounts';
+    return ethersProvider.send(method, params);
+  };
+  // Simulate injected metamask metamask provider
+  (window as any).ethereum = ethersProvider;
 };

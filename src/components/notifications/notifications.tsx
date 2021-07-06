@@ -23,26 +23,24 @@ export const CloseButton = ({ closeToast }: CloseButtonProps) => (
 );
 
 interface ToastProps {
-  title?: string;
   message: string;
   url?: string;
 }
 
 interface ErrorToastProps extends ToastProps {
   errorOrMessage: Error | string;
-  skipSentry?: boolean;
+  sendToSentry?: boolean;
 }
 
 interface ToastPropsWithType extends ToastProps {
   type: 'info' | 'success' | 'warning' | 'error';
 }
 
-const CustomToast = ({ message, title, type, url }: ToastPropsWithType) => {
+const CustomToast = ({ message, type, url }: ToastPropsWithType) => {
   return (
     <div className={classNames(styles.notificationBody, { [styles.url]: url })}>
       <img src={`/${type}.svg`} alt={`${type} icon`} />
       <div className={styles.notificationContent}>
-        <p className={styles.notificationTitle}>{title || type}</p>
         <p>{message}</p>
         {url && (
           <div className={styles.notificationUrl}>
@@ -89,8 +87,8 @@ export const warning = throttle(
 
 export const error = throttle(
   (props: ErrorToastProps, overrides?: ToastOptions) => {
-    const { skipSentry = false, errorOrMessage, ...other } = props;
-    if (!skipSentry) {
+    const { sendToSentry = false, errorOrMessage, ...other } = props;
+    if (sendToSentry) {
       if (typeof errorOrMessage === 'string') Sentry.captureMessage(errorOrMessage);
       else Sentry.captureException(errorOrMessage);
     }

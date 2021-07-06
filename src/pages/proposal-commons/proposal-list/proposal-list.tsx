@@ -38,6 +38,8 @@ const ProposalInfoState = ({ proposal, device }: ProposalProps) => {
       ? `Primary-type proposals need ${proposal.minAcceptQuorum}% quorum to pass`
       : `Secondary-type proposals need ${proposal.minAcceptQuorum}% quorum to pass`;
 
+  const proposalId = `#${voteIdFormat(proposal.voteId)} ${proposal.type}`;
+
   return (
     <div
       className={classNames(styles.proposalItemBox, {
@@ -45,13 +47,14 @@ const ProposalInfoState = ({ proposal, device }: ProposalProps) => {
         [styles.mobile]: device === 'mobile',
       })}
     >
-      <p className={styles.proposalItemVoteId}>#{voteIdFormat(proposal.voteId)}</p>
       <ProposalStatus proposal={proposal} />
       <div className={styles.proposalItemTag}>
-        <Tooltip content={tooltipContent}>
-          <Tag type={proposal.type}>
-            <span className={globalStyles.capitalize}>{proposal.type}</span>
-          </Tag>
+        <Tooltip overlay={tooltipContent}>
+          <span>
+            <Tag type={proposal.type}>
+              <span className={globalStyles.capitalize}>{proposalId}</span>
+            </Tag>
+          </span>
         </Tooltip>
       </div>
     </div>
@@ -66,7 +69,7 @@ const ProposalList = (props: Props) => {
     <>
       {!proposals && (
         <div className={styles.noProposals}>
-          You need to be connected to view proposals{' '}
+          <span>You need to be connected to view proposals</span>
           <Button type="link" onClick={connectWallet(setChainData)}>
             Connect your wallet
           </Button>
@@ -76,12 +79,12 @@ const ProposalList = (props: Props) => {
       {proposals?.map((p) => {
         const votingSliderData = voteSliderSelector(p);
         const navlink = {
-          base: p.open ? 'proposals' : 'history',
+          base: p.open ? 'governance' : 'history',
           typeAndId: encodeProposalTypeAndId(p.type, voteIdFormat(p.voteId)),
         };
 
         return (
-          <div className={styles.proposalItem} key={`${p.type}-${voteIdFormat(p.voteId)}`}>
+          <div className={styles.proposalItem} key={`${p.type}-${voteIdFormat(p.voteId)}`} data-cy="proposal-item">
             <div className={styles.proposalItemWrapper}>
               <ProposalInfoState proposal={p} device="mobile" />
               <p className={styles.proposalItemTitle}>

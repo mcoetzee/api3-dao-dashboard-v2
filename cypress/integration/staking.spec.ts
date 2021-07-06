@@ -2,7 +2,7 @@
 
 import { EPOCH_LENGTH } from '../support/common';
 
-describe('dashboard', () => {
+describe('staking', () => {
   before(() => {
     cy.resetBlockchain().login();
 
@@ -30,7 +30,7 @@ describe('dashboard', () => {
 
     cy.findByText('+ Deposit').click();
     cy.get('input').type('200');
-    cy.findByText('Deposit and stake').click();
+    cy.findByText('Deposit and Stake').click();
 
     // Assert balances
     cy.dataCy('balance').should('have.text', '700.0');
@@ -52,7 +52,7 @@ describe('dashboard', () => {
     cy.dataCy('amount').should('have.text', '20.0');
 
     // Travel to the future and unstake
-    cy.increaseTime(EPOCH_LENGTH + 60 * 60); // add 1 hour to be sure unstake time passed
+    cy.increaseTimeAndRelogin(EPOCH_LENGTH + 60 * 60); // add 1 hour to be sure unstake time passed
     cy.findAllByText('Unstake').should('have.length', 2);
     cy.findAllByText('Unstake').first().click();
 

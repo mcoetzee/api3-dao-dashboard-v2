@@ -36,6 +36,7 @@ export const useTreasuryAndDelegation = () => {
         delegation: {
           proposalVotingPowerThreshold: data.proposalVotingPowerThreshold,
           userVotingPower: data.userVotingPower,
+          delegatedVotingPower: data.delegatedToUser,
           delegate: isZeroAddress(data.delegate) ? null : data.delegate,
           lastDelegationUpdateTimestamp: blockTimestampToDate(data.lastDelegationUpdateTimestamp),
           lastProposalTimestamp: blockTimestampToDate(data.lastProposalTimestamp),
@@ -46,11 +47,10 @@ export const useTreasuryAndDelegation = () => {
 
     const goResponse = await go(loadTreasuryAndDelegation);
     if (!isGoSuccess(goResponse)) {
-      notifications.error({
+      return notifications.error({
         message: messages.FAILED_TO_LOAD_TREASURY_AND_DELEGATION,
         errorOrMessage: goResponse[GO_ERROR_INDEX],
       });
-      return;
     }
 
     const treasuryAndDelegation = goResponse[GO_RESULT_INDEX];

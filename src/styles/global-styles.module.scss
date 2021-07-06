@@ -9,6 +9,10 @@ body {
   display: contents;
 }
 
+input {
+  margin: 0;
+}
+
 h1,
 h2,
 h3,
@@ -146,4 +150,9 @@ a {
 
 .mlXl {
   margin-left: 32px;
+}
+
+.helpIcon {
+  margin-left: $space-md;
+  vertical-align: middle;
 }

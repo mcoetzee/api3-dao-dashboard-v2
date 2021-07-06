@@ -1,11 +1,15 @@
-// Images list here will also be preloaded in the document head
+// Images list here will also be prefetched in the document head
 export const images = {
   api3LogoDark: '/api3-logo-dark.svg',
   api3LogoWhite: '/api3-logo-white.svg',
   apiIcon: '/api-icon.svg',
   arrowDropdown: '/arrow-dropdown.svg',
   arrowDropdownDark: '/arrow-dropdown-dark.svg',
+  arrowLeft: '/arrow-left.svg',
   arrowRight: '/arrow-right.svg',
+  checkboxEmpty: '/checkbox-empty.svg',
+  checkboxFilled: '/checkbox-filled.svg',
+  checkBlack: '/check-black.svg',
   checkGreen: '/check-green.svg',
   close: '/close.svg',
   closePink: '/close-pink.svg',
@@ -13,7 +17,9 @@ export const images = {
   connectedDark: '/connected-dark.svg',
   dropdown: '/dropdown.svg',
   error: '/error.svg',
+  externalLink: '/external-link.svg',
   hamburgerMenu: '/hamburger-menu.svg',
+  help: '/help.svg',
   info: '/info.svg',
   menuClose: '/menu-close.svg',
   notificationClose: '/notification-close.svg',

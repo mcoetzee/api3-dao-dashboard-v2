@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, ethers, Signer } from 'ethers';
 import type ContractsAddresses from '../contract-deployments/localhost-dao.json';
 
 export interface PendingUnstake {
@@ -37,6 +37,7 @@ export interface ProposalMetadata {
 export const VOTER_STATES = { 0: 'Unvoted', 1: 'Voted For', 2: 'Voted Against' } as const;
 export type VoterState = 0 | 1 | 2; // Absent, Yea, Nay
 export type ProposalType = 'primary' | 'secondary';
+export type TreasuryType = 'primary' | 'secondary';
 
 export interface Proposal {
   voteId: ethers.BigNumber;
@@ -44,6 +45,8 @@ export interface Proposal {
   metadata: ProposalMetadata;
   startDate: Date;
   voterState: VoterState;
+  delegateAt: string | null;
+  delegateState: VoterState;
   open: boolean;
   executed: boolean;
   supportRequired: number;
@@ -56,11 +59,14 @@ export interface Proposal {
   type: ProposalType;
   script: string;
   userVotingPowerAt: BigNumber;
+  discussionUrl: string | null;
 }
 
 export interface Delegation {
   proposalVotingPowerThreshold: BigNumber;
+  // NOTE: userVotingPower includes delegated voting power
   userVotingPower: BigNumber;
+  delegatedVotingPower: BigNumber;
   delegate: string | null;
   lastDelegationUpdateTimestamp: Date;
   lastProposalTimestamp: Date;
@@ -95,19 +101,32 @@ export type TransactionType =
   | 'new-vote'
   | 'vote-for'
   | 'vote-against'
-  | 'execute';
+  | 'execute'
+  | 'update-timelock-status'
+  | 'withdraw-to-pool';
+
+interface Vesting {
+  amountVested: BigNumber;
+  remainingToWithdraw: BigNumber;
+}
 
 export interface ChainData {
+  // TODO: move the following fields to a separate interface called GenericChainData
   provider: ethers.providers.Web3Provider | null;
   userAccount: string;
+  availableAccounts: string[]; // NOTE: Contains multiple values only when connected to hardhat node
+  signer: Signer | null;
   networkName: string;
   chainId: undefined | number;
   contracts: typeof ContractsAddresses | null;
+
   dashboardState: DashboardState | null;
+  isGenesisEpoch: boolean | undefined;
   proposals: Proposals | null;
   treasuries: Treasury[];
   delegation: Delegation | null;
   transactions: { type: TransactionType; tx: ethers.ContractTransaction }[];
+  vesting: Vesting | null;
 }
 
 export interface SettableChainData extends ChainData {
@@ -120,14 +139,18 @@ export interface SettableChainData extends ChainData {
 export const initialChainData: ChainData = {
   provider: null,
   userAccount: '',
+  availableAccounts: [],
+  signer: null,
   networkName: '',
   chainId: undefined,
   contracts: null,
   dashboardState: null,
+  isGenesisEpoch: undefined,
   proposals: null,
   treasuries: [],
   delegation: null,
   transactions: [],
+  vesting: null,
 };
 
 export const initialSettableChainData: SettableChainData = { ...initialChainData, setChainData: () => {} };

@@ -30,7 +30,7 @@
 }
 
 .proposalItemTitle {
-  margin-bottom: $space-xxs;
+  margin-bottom: $space-md;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -127,7 +127,15 @@
 .noProposals {
   color: $tertiary-color;
   text-align: center;
-  margin: 15vh;
+  margin: 15vh 15vw;
   transform: translateY(-50%);
   font-size: $text-small;
+
+  & > * {
+    margin-right: $space-xs;
+  }
+
+  & > *:last-child {
+    margin-right: 0;
+  }
 }

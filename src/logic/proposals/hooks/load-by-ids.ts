@@ -7,6 +7,7 @@ import { BigNumber } from 'ethers';
 import { notifications } from '../../../components/notifications/notifications';
 import { messages } from '../../../utils/messages';
 import { StartVoteProposal, VOTING_APP_IDS } from './commons';
+import { isZeroAddress } from '../../../contracts';
 
 interface DynamicVotingData {
   id: BigNumber;
@@ -14,8 +15,7 @@ interface DynamicVotingData {
   yea: BigNumber;
   nay: BigNumber;
   voterState: number;
-  // TODO: The following two are useless for proposals and it will be messy to update delegation from these hooks
-  delegateAt: string;
+  delegateAt: string | null;
   delegateState: number;
 }
 
@@ -39,14 +39,22 @@ export const useProposalsByIds = (type: ProposalType, id: BigNumber) => {
 
     const goStartVoteFilters = await go(votingApp.queryFilter(startVoteFilter));
     if (!isGoSuccess(goStartVoteFilters)) {
-      notifications.error({
+      return notifications.error({
         message: messages.FAILED_TO_LOAD_PROPOSALS,
         errorOrMessage: goStartVoteFilters[GO_ERROR_INDEX],
       });
-      return;
     }
-    // There will only be one StartEvent response for the given filter
-    const ethersArgs = goStartVoteFilters[GO_RESULT_INDEX][0]!.args;
+
+    // There will only be at most one StartEvent response for the given filter
+    const goStartVote = goStartVoteFilters[GO_RESULT_INDEX][0];
+    if (!goStartVote) {
+      return notifications.error({
+        message: messages.PROPOSAL_NOT_FOUND,
+        errorOrMessage: messages.PROPOSAL_NOT_FOUND,
+      });
+    }
+
+    const ethersArgs = goStartVote.args;
     const startVote: StartVoteProposal = {
       // Removing ethers array-ish response format
       creator: ethersArgs.creator,
@@ -56,21 +64,19 @@ export const useProposalsByIds = (type: ProposalType, id: BigNumber) => {
 
     const goOpenVoteIds = await go(convenience.getOpenVoteIds(VOTING_APP_IDS[type]));
     if (!isGoSuccess(goOpenVoteIds)) {
-      notifications.error({
+      return notifications.error({
         message: messages.FAILED_TO_LOAD_PROPOSALS,
         errorOrMessage: goOpenVoteIds[GO_ERROR_INDEX],
       });
-      return;
     }
     const openVoteIds = goOpenVoteIds[GO_RESULT_INDEX];
 
     const goLoadProposal = await go(getProposals(votingApp, convenience, userAccount, [startVote], openVoteIds, type));
     if (!isGoSuccess(goLoadProposal)) {
-      notifications.error({
+      return notifications.error({
         message: messages.FAILED_TO_LOAD_PROPOSALS,
         errorOrMessage: goLoadProposal[GO_ERROR_INDEX],
       });
-      return;
     }
     const loadedProposals = goLoadProposal[GO_RESULT_INDEX];
 
@@ -93,14 +99,16 @@ export const useProposalsByIds = (type: ProposalType, id: BigNumber) => {
 
     const goVotingData = await go(convenience.getDynamicVoteData(VOTING_APP_IDS[type], userAccount, [id]));
     if (!isGoSuccess(goVotingData)) {
-      notifications.error({ message: messages.FAILED_TO_LOAD_PROPOSALS, errorOrMessage: goVotingData[GO_ERROR_INDEX] });
-      return;
+      return notifications.error({
+        message: messages.FAILED_TO_LOAD_PROPOSALS,
+        errorOrMessage: goVotingData[GO_ERROR_INDEX],
+      });
     }
     const rawVotingData = goVotingData[GO_RESULT_INDEX];
     const votingData: DynamicVotingData = {
       id: id,
       // The rawVotingData is an object with fields that are single element arrays
-      delegateAt: rawVotingData.delegateAt[0]!,
+      delegateAt: isZeroAddress(rawVotingData.delegateAt[0]!) ? null : rawVotingData.delegateAt[0]!,
       delegateState: rawVotingData.delegateState[0]!,
       executed: rawVotingData.executed[0]!,
       nay: rawVotingData.nay[0]!,
@@ -123,6 +131,8 @@ export const useProposalsByIds = (type: ProposalType, id: BigNumber) => {
           nay: votingData.nay,
           executed: votingData.executed,
           voterState: votingData.voterState as VoterState,
+          delegateAt: votingData.delegateAt,
+          delegateState: votingData.delegateState as VoterState,
         };
       })
     );

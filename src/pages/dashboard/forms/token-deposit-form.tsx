@@ -38,7 +38,7 @@ const TokenDepositForm = (props: Props) => {
   const [error, setError] = useState('');
 
   // The input field should catch any bad inputs, but just in case, try parse and display any errors
-  const [parseErr, inputBigNum] = goSync(() => parseApi3(inputValue));
+  const [parseErr, parsedInput] = goSync(() => parseApi3(inputValue));
 
   const handleApprove = async () => {
     if (!api3Pool || !api3Token) return;
@@ -51,44 +51,37 @@ const TokenDepositForm = (props: Props) => {
       setChainData('Save deposit approval', { transactions: [...transactions, { type: 'approve-deposit', tx }] });
     } else {
       if (isUserRejection(goResponse[GO_ERROR_INDEX])) {
-        notifications.info({ message: messages.TX_APPROVAL_REJECTED });
-        return;
+        return notifications.info({ message: messages.TX_APPROVAL_REJECTED });
       }
-      setError(messages.TX_APPROVAL_ERROR);
-      return;
+      return setError(messages.TX_APPROVAL_ERROR);
     }
   };
 
   const handleDeposit = (type: 'deposit-only' | 'deposit-and-stake') => async () => {
     if (!api3Pool || !userAccount) return;
 
-    if (!inputValue || inputValue === '0') {
-      setError(messages.VALIDATION_INPUT_ZERO);
-      return;
+    if (parseErr || !parsedInput) {
+      return setError(messages.VALIDATION_INPUT_PARSE);
     }
-    if (parseErr || !inputBigNum) {
-      setError(messages.VALIDATION_INPUT_PARSE);
-      return;
+    if (parsedInput.lte(0)) {
+      return setError(messages.VALIDATION_INPUT_ZERO);
     }
-    if (inputBigNum.gt(walletBalance)) {
-      setError(messages.VALIDATION_DEPOSIT_TOO_HIGH);
-      return;
+    if (parsedInput.gt(walletBalance)) {
+      return setError(messages.VALIDATION_DEPOSIT_TOO_HIGH);
     }
 
     setError('');
 
     const methodName = type === 'deposit-only' ? 'depositRegular' : 'depositAndStake';
-    const goResponse = await go(api3Pool[methodName](parseApi3(inputValue)));
+    const goResponse = await go(api3Pool[methodName](parsedInput));
     if (isGoSuccess(goResponse)) {
       const tx = goResponse[GO_RESULT_INDEX];
       setChainData(`Save "${type}" transaction`, { transactions: [...transactions, { type, tx }] });
     } else {
       if (isUserRejection(goResponse[GO_ERROR_INDEX])) {
-        notifications.info({ message: messages.TX_DEPOSIT_REJECTED });
-        return;
+        return notifications.info({ message: messages.TX_DEPOSIT_REJECTED });
       }
-      setError(messages.TX_DEPOSIT_ERROR);
-      return;
+      return setError(messages.TX_DEPOSIT_ERROR);
     }
 
     props.onClose();
@@ -100,8 +93,8 @@ const TokenDepositForm = (props: Props) => {
     return null;
   }
 
-  const approvalRequired = !parseErr && !!inputBigNum && inputBigNum.gt(allowance);
-  const canDeposit = !parseErr && !!inputBigNum && !approvalRequired && inputBigNum.gt(0);
+  const approvalRequired = !parseErr && !!parsedInput && parsedInput.gt(allowance);
+  const canDeposit = !parseErr && !!parsedInput && !approvalRequired && parsedInput.gt(0);
 
   return (
     <>
@@ -139,16 +132,16 @@ const TokenDepositForm = (props: Props) => {
           ) : (
             <Button
               type="link"
-              onClick={handleDeposit('deposit-and-stake')}
               className={styles.tokenAmountFormApprove}
+              onClick={handleDeposit('deposit-only')}
               disabled={!canDeposit}
             >
-              Deposit and stake
+              Deposit
             </Button>
           )}
 
-          <Button type="secondary" onClick={handleDeposit('deposit-only')} disabled={!canDeposit}>
-            Deposit
+          <Button type="secondary" onClick={handleDeposit('deposit-and-stake')} disabled={!canDeposit}>
+            Deposit and Stake
           </Button>
         </div>
 
