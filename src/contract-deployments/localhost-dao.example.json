@@ -1,10 +1,12 @@
 {
-  "api3Token": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
-  "timelockManager": "0xf10952f418da8da5ece292b1b82a20479633f173",
-  "api3Pool": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
-  "convenience": "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
-  "votingAppPrimary": "0xc8f18fc8faf682ce4b27124a4ab7f976ab10292f",
-  "votingAppSecondary": "0xd78bc0f7cdbb88eba36eed08c1152f80fbebbbce",
-  "agentAppPrimary": "0x600214cfaf9f0734659f57656f31e4a11e833f40",
-  "agentAppSecondary": "0x71f1337dc27cd188b3c116b0b874311efe144a0a"
+  "api3Token": "0xda9c2f4792bccceb45b3abf9ea3d027eba5c4224",
+  "timelockManager": "0x007e6f3b079ddfaaaeac56df96a98f108dd83bc8",
+  "api3Pool": "0xdb9dbf00b7a10ee3e3e6a308bda342a8e392f5d1",
+  "convenience": "0x936fb32a903f9f1ca70a63ea6c6c9345021fffbf",
+  "dao": "0x6ae13ad758153f729723b1078cfbf2297aa6379b",
+  "acl": "0x3b18682d5207f6f7e8e28b9039a67b5a5b04ec7b",
+  "votingAppPrimary": "0x47acb0ea9b821aed9093a1b484fbb7bfd6e4a8ca",
+  "votingAppSecondary": "0x6dc05c1cf11a43d59839f0655930654c3c6a651c",
+  "agentAppPrimary": "0x5dc941fda38a7c1ff6df23ea583521351fd1b658",
+  "agentAppSecondary": "0xdb8488285b59d8c08f65517a33489f239d6c342a"
 }
