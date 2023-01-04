@@ -19,7 +19,11 @@
       "schedule": ["before 2am on monday"],
       "groupName": "devDependencies (non-major)",
       "groupSlug": "dev-dependencies"
-    }
+    },
+    {
+      "matchPackageNames": ["api3-dao"],
+      "enabled": false
+    },
   ],
   "rangeStrategy": "bump",
   "lockFileMaintenance": {
