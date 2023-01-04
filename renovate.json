@@ -7,6 +7,16 @@
       "enabled": false
     },
     {
+      "matchDepTypes": ["devDependencies"],
+      "matchPackageNames": ["jest"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["api3-dao"],
+      "enabled": false
+    },
+    {
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["before 2am on monday"],
@@ -19,14 +29,11 @@
       "schedule": ["before 2am on monday"],
       "groupName": "devDependencies (non-major)",
       "groupSlug": "dev-dependencies"
-    },
-    {
-      "matchPackageNames": ["api3-dao"],
-      "enabled": false
     }
   ],
   "rangeStrategy": "bump",
   "lockFileMaintenance": {
     "enabled": true
-  }
+  },
+  "dependencyDashboard": false
 }
