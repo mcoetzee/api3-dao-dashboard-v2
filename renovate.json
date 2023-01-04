@@ -7,7 +7,7 @@
       "enabled": false
     },
     {
-      "matchPackageNames": ["monorepo:jest"],
+      "extends": ["monorepo:jest"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
