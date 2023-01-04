@@ -7,11 +7,6 @@
       "enabled": false
     },
     {
-      "extends": ["monorepo:jest"],
-      "matchUpdateTypes": ["major"],
-      "enabled": false
-    },
-    {
       "matchPackageNames": ["api3-dao"],
       "enabled": false
     },
