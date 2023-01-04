@@ -1,5 +1,5 @@
 {
-  "extends": ["config:base"],
+  "extends": ["config:base", "docker:disable"],
   "packageRules": [
     {
       "matchDepTypes": ["dependencies"],
@@ -7,16 +7,18 @@
       "enabled": false
     },
     {
-      "matchDepTypes": ["devDependencies"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "schedule": ["before 2am on monday"],
-      "groupName": "devDependencies (non-major)"
-    },
-    {
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["before 2am on monday"],
-      "groupName": "dependencies (non-major)"
+      "groupName": "dependencies (non-major)",
+      "groupSlug": "dependencies"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "schedule": ["before 2am on monday"],
+      "groupName": "devDependencies (non-major)",
+      "groupSlug": "dev-dependencies"
     }
   ],
   "rangeStrategy": "bump",
