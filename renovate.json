@@ -23,7 +23,7 @@
     {
       "matchPackageNames": ["api3-dao"],
       "enabled": false
-    },
+    }
   ],
   "rangeStrategy": "bump",
   "lockFileMaintenance": {
