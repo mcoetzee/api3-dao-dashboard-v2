@@ -7,7 +7,6 @@
       "enabled": false
     },
     {
-      "matchDepTypes": ["devDependencies"],
       "matchPackageNames": ["jest"],
       "matchUpdateTypes": ["major"],
       "enabled": false
